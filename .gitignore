@@ -1,0 +1,6 @@
+*.pyc
+*~
+__pycache__/
+db.sqlite3
+/.vscode
+# settings.py  # If you have sensitive information in settings.py

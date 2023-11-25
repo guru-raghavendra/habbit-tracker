@@ -1,3 +1,5 @@
+from datetime import timedelta
+import json
 from django.utils import timezone
 from calendar import monthrange
 from rest_framework import status, permissions
@@ -11,7 +13,7 @@ from .serializers import HabitSerializer, HabitLogSerializer, HabitStatsSerializ
 
 
 def get_todays_habits(user):
-    today = timezone.now().date()
+    today = timezone.localtime(timezone.now()).date()
     habits = Habit.objects.filter(
         user=user, 
         deleted_at__isnull=True
@@ -29,16 +31,48 @@ def get_todays_habits(user):
 
 
 
+def update_habit_stats(user, date):
+    # Calculate total habits for the user that are not deleted
+    total_habits = Habit.objects.filter(
+        user=user, 
+        created_at__lte=date,
+        deleted_at__isnull=True
+    ).count()
+
+    # Calculate completed habits for the user on the given date
+    completed_habits = HabitLog.objects.filter(
+        habit__in=Habit.objects.filter(user=user),
+        date=date,
+        completed=True
+    ).count()
+
+    # Get or create a HabitStats object for the user on the given date
+    habit_stats, created = HabitStats.objects.get_or_create(user=user, date=date)
+
+    # Update the total and completed habit counts
+    habit_stats.total_habits = total_habits
+    habit_stats.completed_habits = completed_habits
+    habit_stats.save()
+
 
 def get_monthly_stats(user):
-    today = timezone.now().date()
+    # import pdb; pdb.set_trace()
+    today = timezone.localtime(timezone.now()).date()
     first_day_of_month = today.replace(day=1)
-    last_day_of_month = today.replace(day=monthrange(today.year, today.month)[1])  #check these
+    last_day_of_month = today.replace(day=monthrange(today.year, today.month)[1]) 
     
+    # Ensure habit stats exist for each day of the current month
+    date = first_day_of_month
+    while date <= last_day_of_month:
+        update_habit_stats(user, date)
+        date += timedelta(days=1)
+
+
+    # Fetch and sort the updated monthly stats by date
     monthly_stats = HabitStats.objects.filter(
         user=user, 
         date__range=(first_day_of_month, last_day_of_month)
-    )
+    ).order_by('date')  # Sorting by date
 
     return HabitStatsSerializer(monthly_stats, many=True).data
 
@@ -75,7 +109,7 @@ def create_new_habit(request):
     
     data = {
         'month_stats': get_monthly_stats(user),
-        'message': 'success'
+        'message': 'Success'
     }
 
     return Response(data, status=status.HTTP_200_OK)
@@ -119,10 +153,13 @@ def delete_habit(request, habit_id):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    habit.deleted_at = timezone.now().date()
-    habit.save()
+    habit.deleted_at = timezone.localtime(timezone.now()).date()
+    data = {
+        'month_stats': get_monthly_stats(user),
+        'message': 'success'
+    }
 
-    return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -130,9 +167,8 @@ def delete_habit(request, habit_id):
 def save_habit_statuses(request):
     status_updates = request.data
     user = request.user
-    today = timezone.now().date()
+    today = timezone.localtime(timezone.now()).date()
     updated_habits = set()
-
     for update in status_updates:
         habit_id = update.get('habit_id')
         new_status = update.get('status')

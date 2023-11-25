@@ -8,16 +8,18 @@ class HabitSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'deleted_at']
 
 class HabitLogSerializer(serializers.ModelSerializer):
+    habit_name = serializers.SerializerMethodField()
     class Meta:
         model = HabitLog
-        fields = ['id', 'habit', 'date', 'completed']
+        fields = [ 'habit', 'habit_name', 'completed']
         read_only_fields = ['date']
+        
+    def get_habit_name(self, obj):
+        return obj.habit.name
         
 
 class HabitStatsSerializer(serializers.ModelSerializer):
-    completion_ratio = serializers.FloatField(read_only=True)
-
     class Meta:
         model = HabitStats
-        fields = ['user', 'date', 'total_habits', 'completed_habits', 'completion_ratio']
-        read_only_fields = ['date', 'total_habits', 'completed_habits', 'completion_ratio']
+        fields = [ 'date', 'total_habits' , 'completed_habits']
+        read_only_fields = ['date', ]

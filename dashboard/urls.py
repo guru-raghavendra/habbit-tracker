@@ -6,4 +6,5 @@ urlpatterns = [
     path('create-new-habit/', views.create_new_habit, name='create_new_habit'),
     path('edit-habit/<int:habit_id>/', views.edit_habit, name='edit_habit'),
     path('delete-habit/<int:habit_id>/', views.delete_habit, name='delete_habit'),
+    path('save-habit-statuses/', views.save_habit_statuses, name='delete_habit'),
 ]

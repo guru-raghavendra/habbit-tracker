@@ -56,22 +56,14 @@ def update_habit_stats(user, date):
 
 
 def get_monthly_stats(user):
-    # import pdb; pdb.set_trace()
-    today = timezone.localtime(timezone.now()).date()
-    first_day_of_month = today.replace(day=1)
-    last_day_of_month = today.replace(day=monthrange(today.year, today.month)[1]) 
+    end_date = timezone.localtime(timezone.now()).date()
+    start_date = end_date - timedelta(days=30)
     
-    # Ensure habit stats exist for each day of the current month
-    date = first_day_of_month
-    while date <= last_day_of_month:
-        update_habit_stats(user, date)
-        date += timedelta(days=1)
-
-
-    # Fetch and sort the updated monthly stats by date
+    update_habit_stats(user, end_date)
+    
     monthly_stats = HabitStats.objects.filter(
         user=user, 
-        date__range=(first_day_of_month, last_day_of_month)
+        date__range=(start_date, end_date)
     ).order_by('date')  # Sorting by date
 
     return HabitStatsSerializer(monthly_stats, many=True).data
@@ -106,7 +98,6 @@ def create_new_habit(request):
 
     user = request.user
     Habit.objects.create(user=user, name=habit_name)
-    
     data = {
         'month_stats': get_monthly_stats(user),
         'message': 'Success'

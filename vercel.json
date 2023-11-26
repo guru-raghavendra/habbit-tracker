@@ -1,0 +1,23 @@
+{
+	"version": 2,
+	"builds": [
+	  {
+		"src": "habbit_tracker/wsgi.py",
+		"use": "@vercel/python",
+		"config": { "maxLambdaSize": "50mb", "runtime":"python3.9" }
+	  }
+	],
+	"routes": [
+	  {
+		"src": "/static/(.*)",
+		"dest": "/static/$1",
+		"headers": { "cache-control": "s-maxage=31536000,immutable" }
+	  },
+	  {
+		"src": "/(.*)",
+		"dest": "habbit_tracker/wsgi.py"
+	  }
+	]
+  }
+  
+  

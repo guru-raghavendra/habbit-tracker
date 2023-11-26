@@ -2,12 +2,16 @@
 	"version": 2,
 	"builds": [
 	  {
-		"src": "index.py",
-		"use": "@vercel/python"
+		"src": "habit_tracker/wsgi.py",
+		"use": "@vercel/python",
+		"config": { "maxLambdaSize": "50mb", "runtime": "python3.9" }
 	  }
 	],
 	"routes": [
-	  { "src": "/(.*)", "dest": "index.py" }
+	  {
+		"src": "/(.*)",
+		"dest": "habit_tracker/wsgi.py"
+	  }
 	]
   }
   

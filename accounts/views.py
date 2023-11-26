@@ -36,4 +36,4 @@ def login_view(request):
     if user:
         token, created = Token.objects.get_or_create(user=user)
         return Response({'token': token.key}, status=status.HTTP_200_OK)
-    return Response(status=status.HTTP_401_UNAUTHORIZED)
+    return Response({'error': 'UserName Already exists'}, status=status.HTTP_400_BAD_REQUEST)

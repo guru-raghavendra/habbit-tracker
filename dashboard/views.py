@@ -145,6 +145,7 @@ def delete_habit(request, habit_id):
         )
 
     habit.deleted_at = timezone.localtime(timezone.now()).date()
+    habit.save()
     data = {
         'month_stats': get_monthly_stats(user),
         'message': 'success'

@@ -102,6 +102,7 @@ def create_new_habit(request):
     Habit.objects.create(user=user, name=habit_name)
     data = {
         'month_stats': get_monthly_stats(user),
+        'todays_habits': get_todays_habits(user),
         'message': 'Success'
     }
 

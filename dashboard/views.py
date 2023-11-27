@@ -33,15 +33,17 @@ def get_todays_habits(user):
 
 def update_habit_stats(user, date):
     # Calculate total habits for the user that are not deleted
-    total_habits = Habit.objects.filter(
+    active_habits = Habit.objects.filter(
         user=user, 
         created_at__lte=date,
         deleted_at__isnull=True
-    ).count()
+    )
+    
+    total_habits = active_habits.count()
 
     # Calculate completed habits for the user on the given date
     completed_habits = HabitLog.objects.filter(
-        habit__in=Habit.objects.filter(user=user),
+        habit__in=active_habits,
         date=date,
         completed=True
     ).count()
